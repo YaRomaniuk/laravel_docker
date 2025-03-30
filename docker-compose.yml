@@ -16,12 +16,12 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./www:/var/www/html:delegated
+      - ./www:/var/www/html
     depends_on:
       - php
       - redis
       - mysql
-      - mailhog
+#      - mailhog
       - node
     networks:
       - laravel
@@ -56,7 +56,7 @@ services:
     ports:
       - "9000:9000"
     volumes:
-      - ./www:/var/www/html:delegated
+      - ./www:/var/www/html
     networks:
       - laravel
 
@@ -85,9 +85,6 @@ services:
       - laravel
 
   node:
-#    build:
-#      context: ./dockerfiles
-#      dockerfile: node.dockerfile
     image: node:18-alpine
     container_name: "${PROJECT_NAME}_npm"
     working_dir: /var/www/html
@@ -108,21 +105,21 @@ services:
         - GID=${GID:-1000}
     container_name: "${PROJECT_NAME}_artisan"
     volumes:
-      - ./www:/var/www/html:delegated
+      - ./www:/var/www/html
     depends_on:
       - mysql
     entrypoint: [ 'php', '/var/www/html/artisan' ]
     networks:
       - laravel
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: "${PROJECT_NAME}_mailhog"
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-    networks:
-      - laravel
+#  mailhog:
+#    image: mailhog/mailhog:latest
+#    container_name: "${PROJECT_NAME}_mailhog"
+#    ports:
+#      - "1025:1025"
+#      - "8025:8025"
+#    networks:
+#      - laravel
 
   pma:
     image: phpmyadmin/phpmyadmin

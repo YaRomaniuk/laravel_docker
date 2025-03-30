@@ -20,6 +20,9 @@ Write to hosts file
 git clone https://gitlab.com/____
 cd <project-name>
 
+make build
+make artisan key:generate
+make artisan migrate
 ```
 
 ## Links
@@ -37,10 +40,10 @@ MySQL root:
 
 MySQL access:
 
-**User**: `wordpress`
-**Password**: `wordpress`
-**Database**: `wordpress`
-**Host**: `mariadb`
+**User**: `laravel`
+**Password**: `laravel`
+**Database**: `laravel`
+**Host**: `mysql`
 
 ## Directory Structure
 
@@ -56,8 +59,7 @@ MySQL access:
 `make shell` - Access `php` container via shell.
 `make wp` - Executes `wp cli` command in a specified `WP_ROOT` directory (default is `/var/www/html/`).
 
-## Gulp
+## Vite
 
-`npm run build` - compile scss, minify css, minify js for brokers and plugins from gulpconfig.js,
-`npm run build -- --template={broker_template}` - compile scss, minify css, minify js for broker,
-`npm run build -- --plugin={plugin_directory_name}` - minify css, minify js for plugin.
+`make npm run dev` - live compile css, js
+`make npm run build` - create public css, js
