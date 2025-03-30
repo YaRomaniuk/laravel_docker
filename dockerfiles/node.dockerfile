@@ -1,14 +1,13 @@
-FROM node:18
+FROM node:16-alpine
 
-RUN apt-get update && apt-get install -y \
-    vim \
-    zip \
-    unzip \
-    curl
+WORKDIR /var/www/html
 
-USER node
+COPY www/package*.json ./
+
+RUN npm install
+
+COPY . .
 
 EXPOSE 5173
 
-# https://github.com/vitejs/vite/discussions/3396
-CMD ["sh", "-c", "npm install && npm run dev -- --host"]
+CMD ["npm", "run", "dev"]

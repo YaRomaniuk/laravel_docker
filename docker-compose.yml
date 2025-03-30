@@ -12,33 +12,38 @@ services:
       args:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
+    container_name: "${PROJECT_NAME}_app"
     ports:
       - "80:80"
     volumes:
-      - ./src:/var/www/html:delegated
+      - ./www:/var/www/html:delegated
     depends_on:
       - php
       - redis
       - mysql
       - mailhog
+      - node
     networks:
       - laravel
 
   mysql:
     image: mariadb:10.6
+    container_name: "${PROJECT_NAME}_mariadb"
     restart: unless-stopped
     tty: true
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: homestead
-      MYSQL_USER: homestead
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: $DB_NAME
+      MYSQL_USER: $DB_USER
+      MYSQL_PASSWORD: $DB_PASSWORD
+      MYSQL_ROOT_PASSWORD: $DB_ROOT_PASSWORD
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
     networks:
       - laravel
+    volumes:
+      - mariadb_data:/var/lib/mysql
 
   php:
     build:
@@ -47,15 +52,17 @@ services:
       args:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
+    container_name: "${PROJECT_NAME}_php"
     ports:
       - "9000:9000"
     volumes:
-      - ./src:/var/www/html:delegated
+      - ./www:/var/www/html:delegated
     networks:
       - laravel
 
   redis:
-    image: redis:alpine
+    image: redis:7.4.2-alpine
+    container_name: "${PROJECT_NAME}_redis"
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -70,23 +77,25 @@ services:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
     volumes:
-      - ./src:/var/www/html
+      - ./www:/var/www/html
     depends_on:
       - php
     entrypoint: [ 'composer', '--ignore-platform-reqs' ]
     networks:
       - laravel
 
-  npm:
-    image: node:current-alpine
-    volumes:
-      - ./src:/var/www/html
-    ports:
-      - "3000:3000"
-      - "3001:3001"
-      - "5173:5173"
+  node:
+#    build:
+#      context: ./dockerfiles
+#      dockerfile: node.dockerfile
+    image: node:18-alpine
+    container_name: "${PROJECT_NAME}_npm"
     working_dir: /var/www/html
-    entrypoint: [ 'npm' ]
+    volumes:
+      - ./www:/var/www/html
+    ports:
+      - "5173:5173"
+    command: ["sh", "-c", "npm install && npm run dev"]
     networks:
       - laravel
 
@@ -97,8 +106,9 @@ services:
       args:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
+    container_name: "${PROJECT_NAME}_artisan"
     volumes:
-      - ./src:/var/www/html:delegated
+      - ./www:/var/www/html:delegated
     depends_on:
       - mysql
     entrypoint: [ 'php', '/var/www/html/artisan' ]
@@ -107,8 +117,29 @@ services:
 
   mailhog:
     image: mailhog/mailhog:latest
+    container_name: "${PROJECT_NAME}_mailhog"
     ports:
       - "1025:1025"
       - "8025:8025"
     networks:
       - laravel
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: "${PROJECT_NAME}_pma"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: $DB_USER
+      PMA_PASSWORD: $DB_PASSWORD
+      PHP_UPLOAD_MAX_FILESIZE: 1G
+      PHP_MAX_INPUT_VARS: 1G
+    ports:
+      - "8085:80"
+    depends_on:
+      - mysql
+    networks:
+      - laravel
+
+volumes:
+  mariadb_data:
+    driver: local
