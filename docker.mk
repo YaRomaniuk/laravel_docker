@@ -16,9 +16,6 @@ build:
 	docker-compose run --rm composer update
 	cp -n www/.env.example www/.env || true
 
-## artisan
-#artisan:
-#	docker-compose run --rm artisan $(filter-out $@,$(MAKECMDGOALS))
 artisan:
 	docker-compose run --rm artisan $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 
